@@ -1,0 +1,10 @@
+{
+  "name": "ags-notifications",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Standalone AGS notification daemon/stack (instance notifications, config dir ags-notifications).",
+  "exports": {
+    ".": "./app.tsx"
+  }
+}

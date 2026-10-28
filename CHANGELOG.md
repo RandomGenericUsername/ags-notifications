@@ -1,0 +1,17 @@
+# Changelog
+
+## v0.1.0 — 2026-10-27
+
+- Extract the notification daemon and card stack from `ags-apps` v0.5.0 into
+  the standalone `ags-notifications` repo (repo root is the app package).
+- Identity: app/instance `notifications`, config dir `ags-notifications`,
+  window `notifications-window`, launcher `notifications-ui`, keybind
+  description “Open notifications”.
+- Preserve the real v0.5.0 `palette-refresh` work behind the platform v0.3.0
+  handler: re-apply the Theme pointer and re-resolve progress-card icons;
+  idempotent by appearance hash; one JSON-string response.
+- Preserve the open wallpaper/speed-test progress cards and the AstalNotifd
+  daemon/bus subscription on refresh; no rebuild, dismissal or restart.
+- Add the standalone dev flow (`AGENTS.md`, tickets, worktree guard, Makefile,
+  CI, tests, `templates/ags-app/`) and the manifest/handler conformance gate.
+- Pin the local-only v0.3.0 `ags-platform`/`contracts` tuple via `.dev/`.
