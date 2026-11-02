@@ -11,7 +11,7 @@
 ## Requirements
 
 - [REQ-001-standalone-notifications/ticket.md](./REQ-001-standalone-notifications/ticket.md) — Extract the notifications stack into the standalone ags-notifications repo | `done` | links: worktree none, branch main
-- [REQ-002-theme-roles/ticket.md](./REQ-002-theme-roles/ticket.md) — Migrate notifications CSS to semantic palette.v1 roles | `in-progress` | links: worktree .worktrees/REQ-002/, branch ticket/REQ-002-theme-roles
+- [REQ-002-theme-roles/ticket.md](./REQ-002-theme-roles/ticket.md) — Migrate notifications CSS to semantic palette.v1 roles | `done` | links: worktree .worktrees/REQ-002/, branch ticket/REQ-002-theme-roles
 
 ## Bugs
 

@@ -186,6 +186,14 @@ test("the manifest agrees with app.tsx, the window and the stylesheet", () => {
   assert.match(readText("style.css"), /window#notifications-window/)
 })
 
+test("the stylesheet uses palette.v1 roles and no legacy @color_* token", () => {
+  const css = readText("style.css")
+  assert.doesNotMatch(css, /@color_/, "legacy @color_* token remains in style.css")
+  for (const role of ["surface", "on_surface", "primary", "error", "error_container"]) {
+    assert.match(css, new RegExp(`@${role}\\b`), `style.css must use @${role}`)
+  }
+})
+
 test("the launcher and keybind description are documented for consumers", () => {
   const readme = readText("README.md")
   assert.match(readme, /`notifications-ui`/)
@@ -257,9 +265,9 @@ test("the contracts v0.3.0 manifest schema agrees with the platform", () => {
   )
 })
 
-test("the Makefile pins the v0.3.0 program tuple and local contracts link", () => {
+test("the Makefile pins platform v0.4.0, contracts v0.3.0 and the local contracts link", () => {
   const makefile = readText("Makefile")
-  assert.match(makefile, /^AGS_PLATFORM_VERSION := v0\.3\.0$/m)
+  assert.match(makefile, /^AGS_PLATFORM_VERSION := v0\.4\.0$/m)
   assert.match(makefile, /^CONTRACTS_VERSION := v0\.3\.0$/m)
   assert.match(makefile, /^CONTRACTS_ROOT \?= \$\(CURDIR\)\/\.dev\/contracts$/m)
 })

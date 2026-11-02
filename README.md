@@ -57,13 +57,13 @@ idempotent by appearance hash and answers with exactly one JSON-encoded string
 
 ## Local development
 
-The program tuple is `ags-platform` / `contracts` / `dotfiles-assets`
-`v0.3.0`. Those tags are local-only in this run; the local gates use gitignored
-symlinks under `.dev/`.
+The platform pin is `ags-platform` `v0.4.0` (the `palette.v1` role provider);
+`contracts` stays on the `v0.3.0` adoption tuple. Those tags are local-only in
+this run; the local gates use gitignored symlinks under `.dev/`.
 
 ```sh
 mkdir -p .dev/ags-platform
-ln -s ../../../ags-platform .dev/ags-platform/v0.3.0   # or use AGS_PLATFORM_DEV
+ln -s ../../../ags-platform .dev/ags-platform/v0.4.0   # or use AGS_PLATFORM_DEV
 ln -s ../../contracts .dev/contracts                   # or set CONTRACTS_ROOT
 make test          # pure unit tests (Node only)
 make conformance   # manifest + handler + template gate

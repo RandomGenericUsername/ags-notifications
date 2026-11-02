@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Migrate `style.css` from the legacy `@color_*` projection to the
+  `palette.v1` semantic roles (`@surface`, `@on_surface`, `@primary`,
+  `@error`, `@error_container`). Geometry, selectors and alpha values are
+  unchanged.
+- Pin `ags-platform` `v0.4.0` (the palette role provider); `contracts` stays
+  on `v0.3.0`.
+
 ## v0.1.0 — 2026-10-27
 
 - Extract the notification daemon and card stack from `ags-apps` v0.5.0 into

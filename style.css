@@ -7,16 +7,16 @@
  *
  * GTK4 CSS has no color-mix(): tints below are precomputed with alpha().
  * Mockup token map:
- *   --panel-bg    -> alpha(@color_00, 0.92)
- *   --surface     -> alpha(@color_background, 0.45)
- *   --hairline    -> alpha(@color_foreground, 0.12)
- *   --hairline-strong -> alpha(@color_foreground, 0.22)
- *   --text-dim    -> alpha(@color_foreground, 0.62)
- *   --accent      -> @color_06
+ *   --panel-bg    -> alpha(@surface, 0.92)
+ *   --surface     -> alpha(@surface, 0.45)
+ *   --hairline    -> alpha(@on_surface, 0.12)
+ *   --hairline-strong -> alpha(@on_surface, 0.22)
+ *   --text-dim    -> alpha(@on_surface, 0.62)
+ *   --accent      -> @primary
  *
- * No literal colors: the critical-urgency tile uses the palette's caution
- * slot (@color_03), the same slot the bar uses for recording attention
- * states, so notification severity still follows the wallpaper.
+ * No literal colors: critical/failed states use the palette's error roles
+ * (`@error` for ink and borders, `@error_container` for their low-alpha
+ * plates), so notification severity still follows the wallpaper.
  * ========================================================================== */
 
 window#notifications-window {
@@ -32,8 +32,8 @@ window#notifications-window {
 .notif-card {
   padding: 13px;
   border-radius: 14px;
-  background-color: alpha(@color_00, 0.92);
-  border: 1px solid alpha(@color_foreground, 0.12);
+  background-color: alpha(@surface, 0.92);
+  border: 1px solid alpha(@on_surface, 0.12);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
 }
 
@@ -46,15 +46,15 @@ window#notifications-window {
   min-width: 56px;
   min-height: 56px;
   border-radius: 9px;
-  background-color: alpha(@color_06, 0.18);
-  border: 1px solid alpha(@color_06, 0.45);
-  color: @color_06;
+  background-color: alpha(@primary, 0.18);
+  border: 1px solid alpha(@primary, 0.45);
+  color: @primary;
 }
 
 .notif-tile.critical {
-  color: @color_03;
-  border-color: alpha(@color_03, 0.5);
-  background-color: alpha(@color_03, 0.16);
+  color: @error;
+  border-color: alpha(@error, 0.5);
+  background-color: alpha(@error_container, 0.16);
 }
 
 .notif-fallback {
@@ -67,12 +67,12 @@ window#notifications-window {
 .notif-title {
   font-size: 13px;
   font-weight: 700;
-  color: @color_foreground;
+  color: @on_surface;
 }
 
 .notif-body {
   font-size: 11.5px;
-  color: alpha(@color_foreground, 0.62);
+  color: alpha(@on_surface, 0.62);
 }
 
 /* ------------------------------------------------------------ Action row */
@@ -89,26 +89,26 @@ window#notifications-window {
   padding-left: 13px;
   padding-right: 13px;
   border-radius: 8px;
-  border: 1px solid alpha(@color_06, 0.35);
-  background-color: alpha(@color_06, 0.14);
-  color: @color_foreground;
+  border: 1px solid alpha(@primary, 0.35);
+  background-color: alpha(@primary, 0.14);
+  color: @on_surface;
   font-size: 11px;
   font-weight: 600;
 }
 
 .notif-chip:hover {
-  background-color: alpha(@color_06, 0.26);
-  border-color: alpha(@color_06, 0.6);
+  background-color: alpha(@primary, 0.26);
+  border-color: alpha(@primary, 0.6);
 }
 
 .notif-card.critical .notif-chip {
-  background-color: alpha(@color_03, 0.14);
-  border-color: alpha(@color_03, 0.4);
+  background-color: alpha(@error_container, 0.14);
+  border-color: alpha(@error, 0.4);
 }
 
 .notif-card.critical .notif-chip:hover {
-  background-color: alpha(@color_03, 0.26);
-  border-color: alpha(@color_03, 0.6);
+  background-color: alpha(@error_container, 0.26);
+  border-color: alpha(@error, 0.6);
 }
 
 .wallpaper-progress-card {
@@ -119,8 +119,8 @@ window#notifications-window {
   min-width: 34px;
   min-height: 34px;
   border-radius: 8px;
-  background-color: alpha(@color_06, 0.18);
-  color: @color_06;
+  background-color: alpha(@primary, 0.18);
+  color: @primary;
   font-size: 19px;
 }
 
@@ -130,61 +130,61 @@ window#notifications-window {
   padding: 0;
   border: none;
   background: transparent;
-  color: alpha(@color_foreground, 0.62);
+  color: alpha(@on_surface, 0.62);
 }
 
 .wallpaper-progress-steps {
   padding-top: 11px;
-  border-top: 1px solid alpha(@color_foreground, 0.12);
+  border-top: 1px solid alpha(@on_surface, 0.12);
 }
 
 .wallpaper-progress-step-label {
   font-size: 11px;
-  color: alpha(@color_foreground, 0.58);
+  color: alpha(@on_surface, 0.58);
 }
 
 .wallpaper-progress-marker {
   min-width: 18px;
   min-height: 18px;
   border: none;
-  color: alpha(@color_foreground, 0.55);
+  color: alpha(@on_surface, 0.55);
 }
 
 .wallpaper-progress-step.active .wallpaper-progress-step-label {
-  color: @color_foreground;
+  color: @on_surface;
 }
 
 .wallpaper-progress-step.active .wallpaper-progress-marker,
 .wallpaper-progress-step.done .wallpaper-progress-marker {
-  color: @color_06;
+  color: @primary;
 }
 
 .wallpaper-progress-step.done .wallpaper-progress-step-label {
-  color: alpha(@color_foreground, 0.82);
+  color: alpha(@on_surface, 0.82);
 }
 
 .wallpaper-progress-step.failed .wallpaper-progress-marker,
 .wallpaper-progress-step.failed .wallpaper-progress-step-label {
-  color: @color_03;
-  border-color: alpha(@color_03, 0.6);
+  color: @error;
+  border-color: alpha(@error, 0.6);
 }
 
 .wallpaper-progress-footer {
   margin-top: 3px;
   font-size: 10px;
-  color: alpha(@color_foreground, 0.48);
+  color: alpha(@on_surface, 0.48);
 }
 
 .wallpaper-progress-bar trough {
   min-height: 4px;
   border-radius: 3px;
-  background-color: alpha(@color_foreground, 0.12);
+  background-color: alpha(@on_surface, 0.12);
 }
 
 .wallpaper-progress-bar progress {
   min-height: 4px;
   border-radius: 3px;
-  background-color: @color_06;
+  background-color: @primary;
 }
 
 /* ------------------------------------------------- Speed-test progress card
@@ -192,8 +192,8 @@ window#notifications-window {
  * The wallpaper progress card's twin, and deliberately a copy rather than a
  * generalization: the two cards are independent subsystems that may be on screen
  * at once, so sharing one rule set would have meant one card's lifecycle
- * deciding the other's appearance. Everything below is @color_* tokens, so the
- * card restyles with the wallpaper exactly like every other card here — no
+ * deciding the other's appearance. Everything below is palette.v1 roles, so
+ * the card restyles with the wallpaper exactly like every other card here — no
  * literal colour appears, which is what makes that true.
  *
  * The checklist's marker/step/label rules are NOT duplicated from
@@ -207,9 +207,9 @@ window#notifications-window {
   min-width: 44px;
   min-height: 44px;
   border-radius: 8px;
-  background-color: alpha(@color_06, 0.18);
-  border: 1px solid alpha(@color_06, 0.45);
-  color: @color_06;
+  background-color: alpha(@primary, 0.18);
+  border: 1px solid alpha(@primary, 0.45);
+  color: @primary;
   font-size: 19px;
 }
 
@@ -217,57 +217,57 @@ window#notifications-window {
    success here), so `busy` and the settled state share a tint rather than
    inventing a second "success" hue. */
 .speedtest-progress-tile.busy {
-  background-color: alpha(@color_06, 0.18);
+  background-color: alpha(@primary, 0.18);
 }
 
-/* Failure: the palette's caution slot — the same @color_03 the critical
-   notification cards use, so severity still follows the wallpaper. */
+/* Failure: the same error roles the critical notification cards use, so
+   severity still follows the wallpaper. */
 .speedtest-progress-tile.failed {
-  background-color: alpha(@color_03, 0.16);
-  border-color: alpha(@color_03, 0.5);
-  color: @color_03;
+  background-color: alpha(@error_container, 0.16);
+  border-color: alpha(@error, 0.5);
+  color: @error;
 }
 
 .speedtest-progress-steps {
   padding-top: 11px;
-  border-top: 1px solid alpha(@color_foreground, 0.12);
+  border-top: 1px solid alpha(@on_surface, 0.12);
 }
 
 .speedtest-progress-step-label {
   font-size: 11px;
-  color: alpha(@color_foreground, 0.58);
+  color: alpha(@on_surface, 0.58);
 }
 
 .speedtest-progress-marker {
   min-width: 18px;
   min-height: 18px;
   border: none;
-  color: alpha(@color_foreground, 0.55);
+  color: alpha(@on_surface, 0.55);
 }
 
 .speedtest-progress-step.active .speedtest-progress-step-label {
-  color: @color_foreground;
+  color: @on_surface;
 }
 
 .speedtest-progress-step.active .speedtest-progress-marker,
 .speedtest-progress-step.done .speedtest-progress-marker {
-  color: @color_06;
+  color: @primary;
 }
 
 .speedtest-progress-step.done .speedtest-progress-step-label {
-  color: alpha(@color_foreground, 0.82);
+  color: alpha(@on_surface, 0.82);
 }
 
 .speedtest-progress-step.failed .speedtest-progress-marker,
 .speedtest-progress-step.failed .speedtest-progress-step-label {
-  color: @color_03;
-  border-color: alpha(@color_03, 0.6);
+  color: @error;
+  border-color: alpha(@error, 0.6);
 }
 
 .speedtest-progress-footer {
   margin-top: 3px;
   font-size: 10px;
-  color: alpha(@color_foreground, 0.48);
+  color: alpha(@on_surface, 0.48);
 }
 
 /* The bar is INDETERMINATE while a run is in flight (pulsed from a 100ms
@@ -276,13 +276,13 @@ window#notifications-window {
 .speedtest-progress-bar trough {
   min-height: 4px;
   border-radius: 3px;
-  background-color: alpha(@color_foreground, 0.12);
+  background-color: alpha(@on_surface, 0.12);
 }
 
 .speedtest-progress-bar progress {
   min-height: 4px;
   border-radius: 3px;
-  background-color: @color_06;
+  background-color: @primary;
 }
 
 /* The three measured values as separate cells — the card mirrors the panel's
@@ -294,24 +294,24 @@ window#notifications-window {
 .speedtest-progress-cell {
   padding: 9px 10px;
   border-radius: 9px;
-  background-color: alpha(@color_foreground, 0.05);
-  border: 1px solid alpha(@color_foreground, 0.08);
+  background-color: alpha(@on_surface, 0.05);
+  border: 1px solid alpha(@on_surface, 0.08);
 }
 
 /* Download and Upload carry the headline numbers, so they get the accent tint;
    Ping is context and stays neutral. */
 .speedtest-progress-cell.highlight {
-  background-color: alpha(@color_06, 0.12);
-  border-color: alpha(@color_06, 0.3);
+  background-color: alpha(@primary, 0.12);
+  border-color: alpha(@primary, 0.3);
 }
 
 .speedtest-progress-cell-key {
   font-size: 9.5px;
-  color: alpha(@color_foreground, 0.42);
+  color: alpha(@on_surface, 0.42);
 }
 
 .speedtest-progress-cell-value {
   font-size: 15px;
   font-weight: 700;
-  color: @color_foreground;
+  color: @on_surface;
 }
