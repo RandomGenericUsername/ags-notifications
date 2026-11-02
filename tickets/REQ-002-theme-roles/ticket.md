@@ -58,6 +58,9 @@ provider that defines the roles. `contracts` stays at `v0.3.0`.
   role-only-stylesheet assertion), `drift` all checks passed, `bundle`
   `build/ags-notifications.js` 850972 bytes, `typecheck` 0 errors in this tree
   (27 tolerated `/usr/share/ags/js` errors, 0 platform errors).
+- Fresh-worktree proof: `rm -rf node_modules && make gates` → exit 0. `deps`
+  is allowed to run after the shared `platform-dev` node, so the typecheck
+  recipe re-links `node_modules/ags-platform` if npm pruned it.
 - Platform provider contract: `ags-platform` v0.4.0 `ports/palette.ts` projects
   every declared role as `@define-color <role> <hex>;`; `ports/theme.ts`
   composes that block into the one provider.
@@ -73,6 +76,13 @@ provider that defines the roles. `contracts` stays at `v0.3.0`.
   `dbus-run-session -- bash -lc 'GTK_A11Y=none ags run -d . & sleep 8; notify-send -u critical "Disk almost full" "Only 512 MB remain on /home."; sleep 2; grim /tmp/notif.png'`
   (add `export GTK_A11Y=none` as shown when the private bus has no a11y
   registry).
+
+## Scope
+
+- `templates/ags-app/` stays the v0.1.0 frozen scaffold (AD-33) and still uses
+  the legacy alias/pin; refreshing the template belongs to the next release.
+  The app stylesheet (`style.css`) is the migration target and has zero legacy
+  tokens.
 
 ## Dependencies
 

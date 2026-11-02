@@ -126,6 +126,10 @@ bundle: platform-dev
 # and count the AGS runtime's own /usr/share/ags/js errors (machine/GIR
 # dependent) and the external platform unit's (AD-17: its own repo gates it).
 typecheck: deps types platform-dev
+	# `deps` may run AFTER the shared platform-dev node when `make gates` visits
+	# test/conformance first; npm prunes the extraneous symlink. Re-link it here
+	# so a fresh worktree's gate is not order-dependent.
+	@[ -f node_modules/ags-platform/index.ts ] || $(MAKE) --no-print-directory platform-dev
 	@[ -d "@girs" ] || { echo "FAIL: typecheck: @girs missing after types" >&2; exit 1; }
 	@[ -x node_modules/.bin/tsc ] || { echo "FAIL: typecheck: typescript missing after deps" >&2; exit 1; }
 	@[ -f node_modules/ags-platform/index.ts ] || { echo "FAIL: typecheck: platform link missing" >&2; exit 1; }
