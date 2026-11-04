@@ -2,7 +2,7 @@
 id: BUG-001
 title: "Notification card is translucent: underlying window text bleeds through"
 kind: bug
-status: in-progress
+status: done
 lane: 2
 links:
   openspec: none
@@ -37,3 +37,13 @@ not alpha-blended.
 - [ ] Regression test asserts no `alpha(` on that background.
 - [ ] Live: a completion toast over a text-heavy window shows no bleed-through.
 - [ ] Gates green; tag v0.2.1.
+
+## Outcome
+
+Fixed in `v0.2.1` and deployed via PIN-0131:
+- `.notif-card` background is solid `@surface` (no alpha); regression test in
+  `tests/app-contract.test.mjs` asserts it.
+- Live: wallpaper completion toast captured at
+  `/tmp/opencode/f3-after-final.png` (and progress at
+  `/tmp/opencode/f3-after-progress.png`); the window behind no longer bleeds
+  through the card.

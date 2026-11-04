@@ -15,7 +15,7 @@
 
 ## Bugs
 
-- [BUG-001-translucent-card/ticket.md](./BUG-001-translucent-card/ticket.md) — Notification card translucent; window text bleeds through | `in-progress` | severity: medium
+- [BUG-001-translucent-card/ticket.md](./BUG-001-translucent-card/ticket.md) — Notification card translucent; window text bleeds through | `done` | tag: v0.2.1 | live: opaque card captured | severity: medium
 
 ## Ops tasks
 
