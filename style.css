@@ -32,7 +32,7 @@ window#notifications-window {
 .notif-card {
   padding: 13px;
   border-radius: 14px;
-  background-color: alpha(@surface, 0.92);
+  background-color: @surface;
   border: 1px solid alpha(@on_surface, 0.12);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
 }

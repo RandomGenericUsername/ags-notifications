@@ -334,3 +334,15 @@ test("the app still hosts the notification daemon and bus name", () => {
   assert.match(app, /NameHasOwner/)
   assert.match(app, /Notifd\.get_default\(\)/)
 })
+
+test("notification cards are opaque (no background bleed-through)", () => {
+  const css = readFileSync(join(ROOT, "style.css"), "utf8")
+  const block = css.match(/\.notif-card\s*\{([^}]*)\}/)
+  assert.ok(block, "style.css must define .notif-card")
+  assert.match(block[1], /background-color:\s*@surface\s*;/)
+  assert.doesNotMatch(
+    block[1],
+    /background-color:\s*alpha\(/,
+    "notification cards overlay arbitrary windows and must be opaque",
+  )
+})

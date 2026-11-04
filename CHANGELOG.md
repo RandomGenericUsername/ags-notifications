@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — v0.2.1
+
+- Notification cards are opaque (`background-color: @surface`) instead of
+  `alpha(@surface, 0.92)`. Notifications overlay arbitrary app windows, so the
+  8% transparency let the window text bleed through the card (live screenshot:
+  chat text over the wallpaper-completion toast). Regression test added.
+
 ## Unreleased
 
 - Migrate `style.css` from the legacy `@color_*` projection to the

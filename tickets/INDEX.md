@@ -15,7 +15,7 @@
 
 ## Bugs
 
-(none)
+- [BUG-001-translucent-card/ticket.md](./BUG-001-translucent-card/ticket.md) — Notification card translucent; window text bleeds through | `in-progress` | severity: medium
 
 ## Ops tasks
 
