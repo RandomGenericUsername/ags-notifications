@@ -13,12 +13,16 @@
   `palette.v1` semantic roles (`@surface`, `@on_surface`, `@primary`,
   `@error`, `@error_container`). Geometry, selectors and alpha values are
   unchanged.
-- Consume the app-scoped skin plane: `app.tsx` builds
-  `createAppSkin({ configDir: "ags-notifications" })` and applies it right
-  after the theme. `style.css` remains the bundled glass fallback; there is no
-  skin-refresh request (the adapter's file monitor reloads `skin.css`).
-- Pin `ags-platform` `v0.8.0` (the app-scoped Skin factory) and `contracts`
-  `v0.6.0` (the skin vocabulary).
+- Migrate to the v2 appearance plane: `app.tsx` builds one module-level
+  `createAppearance({ configDir: "ags-notifications" })`, `main()` calls
+  `appearance.apply()`, and `palette-refresh` uses
+  `createAppearanceRefreshHandler(appearance, work)`. `style.css` remains the
+  bundled glass fallback; the app-owned work is still the progress-card icon
+  re-resolution, with no new request command.
+- Read the card width from `layout.ags-notifications.card-width` (fallback
+  `380`) through `appearance.value()` instead of the `CARD_WIDTH` constant.
+- Pin `ags-platform` `v0.9.0` (the unified Appearance consumer) and
+  `contracts` `v0.7.0` (the appearance plane v2).
 
 ## v0.1.0 — 2026-10-27
 

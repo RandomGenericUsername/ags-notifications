@@ -63,7 +63,7 @@ no self-hosted runner and no CI secret dependency.
 - `make bundle` — LOCAL: `ags bundle app.tsx build/ags-notifications.js`.
 - `make gates` — all of the above.
 
-The platform tuple is `ags-platform` v0.8.0 / `contracts` v0.6.0, local-only
+The platform tuple is `ags-platform` v0.9.0 / `contracts` v0.7.0, local-only
 in this run. `.dev/` is gitignored; never commit a fetched platform,
 `node_modules/`, `@girs/`, generated `tsconfig.json` or bundle output.
 
@@ -76,12 +76,13 @@ the release ticket.
 
 ## 6. Palette-refresh invariants
 
-`lib/palette-refresh.ts` and `lib/appearance.ts` are pure and executed by tests:
+The platform v2 `createAppearanceRefreshHandler(appearance, work)` is executed
+by tests, and the app keeps only the derived work:
 
 - exactly one JSON-string response per request, through the platform helper;
+- the whole appearance is re-applied before the registry-backed progress-card
+  icons are re-read; the work never calls `theme.apply()` or `skin.apply()`;
 - idempotent by appearance hash; a thrown refresh is not recorded as applied;
-- theme is re-applied before the registry-backed progress-card icons are
-  re-read;
 - the real v0.5.0 work is preserved: open wallpaper/speed-test progress cards,
   queued notifications and the AstalNotifd daemon/bus subscription survive;
   the refresh never rebuilds, dismisses or quits anything;

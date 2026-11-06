@@ -4,17 +4,16 @@ import GLib from "gi://GLib?version=2.0"
 import Gio from "gi://Gio?version=2.0"
 import Notifd from "gi://AstalNotifd?version=0.1"
 import style from "./style.css"
-// Theming through the platform Theme port (spine AD-13): the adapter owns WHICH
-// artifact is applied — the stable `colors.css` pointer, repointed on every
-// palette change — so this app no longer carries its own theme.ts copy.
-import { theme } from "ags-platform/adapters/theme"
-import { createAppSkin } from "ags-platform/adapters/skin"
+// Appearance through the platform v2 consumer (contracts v0.7.0): one composed
+// provider for palette + skin + mode and one monitor on the single repointed
+// `current/appearance` hop. This replaces the split Theme + Skin pair.
+import { createAppearance } from "ags-platform/adapters/appearance"
+import { createAppearanceRefreshHandler } from "ags-platform/ports/appearance-refresh"
 import { PALETTE_REFRESH_COMMAND } from "ags-platform/ports/palette-refresh"
 import {
   NotificationsWindow,
   refreshNotificationCardIcons,
 } from "./ui/NotificationsWindow"
-import { createNotificationsPaletteRefresh } from "./lib/palette-refresh"
 
 //: The well-known bus name this app claims (also used by dunst).
 const NOTIFICATIONS_NAME = "org.freedesktop.Notifications"
@@ -51,25 +50,29 @@ function foreignNotificationDaemon(): boolean {
   }
 }
 
+// This app's slice of the v2 appearance plane: the runtime-composed
+// `$XDG_CONFIG_HOME/ags-notifications/appearance.css` (palette + skin + mode)
+// behind the one `current/appearance` hop. The adapter owns the file monitor,
+// so an appearance change reloads the provider without a request handler. A
+// missing artifact is a no-op, leaving the bundled `style.css` glass fallback
+// in place.
+const appearance = createAppearance({ configDir: "ags-notifications" })
+
 // The runtime-owned palette refresh (AD-27), the standalone form of the real
-// v0.5.0 handler. The injected work is intentionally the same two steps the
-// monorepo registered: re-apply the stable Theme pointer, then re-resolve the
+// v0.5.0 handler. The platform helper re-applies the WHOLE appearance first;
+// the injected work is only the app-owned, non-destructive step: re-resolve the
 // registry-backed progress-card icons. It does NOT rebuild the notification
 // stack: the open progress cards (wallpaper + speed test) and the AstalNotifd
-// daemon/bus subscription survive untouched. `createNotificationsPaletteRefresh`
-// makes the work idempotent by the opaque appearance hash and answers through
-// the platform helper's single JSON-encoded string.
-const paletteRefresh = createNotificationsPaletteRefresh(() => {
-  theme.apply()
+// daemon/bus subscription survive untouched. The helper is idempotent by the
+// opaque appearance hash and answers through its single JSON-encoded string.
+const paletteRefresh = createAppearanceRefreshHandler(appearance, () => {
   refreshNotificationCardIcons()
 })
 
-// This app's slice of the skin plane: the runtime-expanded
-// `$XDG_CONFIG_HOME/ags-notifications/skin.css` composed onto the shared
-// palette/token artifacts. The adapter owns the file monitor, so a skin.css
-// change reloads the provider without a request handler. A missing artifact is
-// a no-op, leaving the bundled `style.css` glass fallback in place.
-const skin = createAppSkin({ configDir: "ags-notifications" })
+// The card measure is a TSX-owned layout token in the v2 plane. Read it through
+// the reactive accessor so an appearance reload updates the next card built;
+// `380` keeps the shipped mockup measure when the token is absent.
+const cardWidth = appearance.value("layout.ags-notifications.card-width", 380)
 
 /**
  * Register one top-level window with the application.
@@ -89,8 +92,8 @@ app.start({
   instanceName: "notifications",
   css: style,
   // The runtime is the only palette-refresh trigger (AD-27). Re-applying the
-  // stable `colors.css` pointer and re-reading the registry-backed progress
-  // icons preserves the open card stack and the daemon's notification/bus state;
+  // whole appearance and re-reading the registry-backed progress icons
+  // preserves the open card stack and the daemon's notification/bus state;
   // `wallpaper.state` is now progress/status only.
   requestHandler(argv: string[], res: (response: string) => void) {
     if (argv[0] === PALETTE_REFRESH_COMMAND) {
@@ -102,15 +105,10 @@ app.start({
     res(`unknown request: ${argv.join(" ")}`)
   },
   main() {
-    try {
-      theme.apply()
-    } catch (error) {
-      console.error(`notifications: palette CSS apply failed: ${error}`)
-    }
-    // The skin provider must be installed after the theme provider: its
-    // composed sheet carries the palette block AND the expanded skin CSS at
-    // USER priority. `apply()` is a no-op when this app has no skin artifacts.
-    skin.apply()
+    // One apply installs the composed palette + skin sheet as the app's single
+    // USER-priority provider. `apply()` is a no-op when this app has no
+    // appearance artifacts, so the bundled `style.css` fallback stays in force.
+    appearance.apply()
 
     // A foreign daemon (dunst during the transition, or a duplicate instance)
     // holding the name means we cannot serve notifications. Exit cleanly
@@ -143,7 +141,7 @@ app.start({
     const monitors = app.get_monitors()
     const primary = monitors[0]
     if (primary !== undefined) {
-      addWindow(NotificationsWindow(primary))
+      addWindow(NotificationsWindow(primary, cardWidth))
     }
   },
 })

@@ -11,6 +11,7 @@ import { domainEvents, type DomainPayload } from "ags-platform/adapters/event-bu
 // The platform's registry-backed IconProvider (spine AD-4/AD-7) replaces the
 // app-local icon-registry.ts copy.
 import { registryProvider } from "ags-platform/adapters/icon"
+import type { ReadAccessor } from "ags-platform/ports/reactive"
 // The cards' PURE model (value formatting + stage mapping): extracted so
 // `make notifications-tests` can execute it without the desktop stack.
 import {
@@ -54,10 +55,10 @@ const URGENCY_CRITICAL = 2
 // Oldest-overflow discipline (mirrors the old dunst `notification_limit`).
 const MAX_VISIBLE = 5
 
-// Fixed card width (the mockup `.toast-stack` measure). A fixed request makes
-// long bodies wrap instead of letting the card grow, and guarantees no
-// notification can ever expand past a toast-sized box.
-const CARD_WIDTH = 380
+// The card width is the v2 `layout.ags-notifications.card-width` token, read
+// through an accessor by `app.tsx`. A fixed request makes long bodies wrap
+// instead of letting the card grow, and guarantees no notification can ever
+// expand past a toast-sized box.
 
 // Icon size inside the 56px tile.
 const TILE_ICON = 24
@@ -183,6 +184,7 @@ function tileContent(
 function NotificationCard(
   notification: InstanceType<typeof Notifd.Notification>,
   onDismiss: () => void,
+  cardWidth: ReadAccessor<number>,
 ): Gtk.Box {
   const critical = notification.get_urgency() === URGENCY_CRITICAL
 
@@ -266,7 +268,7 @@ function NotificationCard(
   })
   card.add_css_class("notif-card")
   if (critical) card.add_css_class("critical")
-  card.set_size_request(CARD_WIDTH, -1)
+  card.set_size_request(cardWidth(), -1)
   card.append(tile)
   card.append(text)
 
@@ -286,7 +288,10 @@ function NotificationCard(
 }
 
 /** Top-right freedesktop notification stack (the session daemon). */
-export function NotificationsWindow(gdkmonitor: Gdk.Monitor) {
+export function NotificationsWindow(
+  gdkmonitor: Gdk.Monitor,
+  cardWidth: ReadAccessor<number>,
+) {
   const notifd = Notifd.get_default()
   let stack: Gtk.Box | null = null
   let cards: CardEntry[] = []
@@ -397,7 +402,7 @@ export function NotificationsWindow(gdkmonitor: Gdk.Monitor) {
     const card = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL, spacing: 9 })
     card.add_css_class("notif-card")
     card.add_css_class("wallpaper-progress-card")
-    card.set_size_request(CARD_WIDTH, -1)
+    card.set_size_request(cardWidth(), -1)
     const heading = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL, spacing: 10 })
     const tile = new Gtk.CenterBox()
     tile.add_css_class("wallpaper-progress-icon")
@@ -634,7 +639,7 @@ export function NotificationsWindow(gdkmonitor: Gdk.Monitor) {
     const card = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL, spacing: 9 })
     card.add_css_class("notif-card")
     card.add_css_class("speedtest-progress-card")
-    card.set_size_request(CARD_WIDTH, -1)
+    card.set_size_request(cardWidth(), -1)
 
     const heading = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL, spacing: 10 })
     const tile = new Gtk.CenterBox()
@@ -653,7 +658,7 @@ export function NotificationsWindow(gdkmonitor: Gdk.Monitor) {
     detail.add_css_class("notif-body")
     // Gtk.Label reports its FULL unwrapped text as natural width, so without
     // maxWidthChars a long reason (a spawn failure can be a whole sentence)
-    // would grow the card past CARD_WIDTH. Wrap, never ellipsize: the reason
+    // would grow the card past its token width. Wrap, never ellipsize: the reason
     // carries the only information the card has.
     detail.set_max_width_chars(SPEEDTEST_REASON_MAX_CHARS)
     copy.append(title)
@@ -896,7 +901,7 @@ export function NotificationsWindow(gdkmonitor: Gdk.Monitor) {
     // A replaced notification reuses its id: drop the stale card first.
     removeCard(id)
     showWindow()
-    const widget = NotificationCard(notification, () => dismissCard(id))
+    const widget = NotificationCard(notification, () => dismissCard(id), cardWidth)
     cards.push({ id, notification, widget })
     if (newestOnTop) stack.prepend(widget)
     else stack.append(widget)

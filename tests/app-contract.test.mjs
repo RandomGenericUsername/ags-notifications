@@ -6,9 +6,9 @@
 //   1. `app.manifest.json` is schema-valid and carries the notifications
 //      identity;
 //   2. app.tsx / window / style / README agree with that identity;
-//   3. the live palette-refresh handler is the real v0.5.0 work (Theme pointer
-//      + progress-card icons) and is non-destructive: no card rebuild, no
-//      daemon teardown, no wallpaper.state palette application;
+//   3. the live palette-refresh handler re-applies the whole Appearance and
+//      keeps the app-owned progress-card icon work; it is non-destructive: no
+//      card rebuild, no daemon teardown, no wallpaper.state palette application;
 //   4. the shared dev-flow template (AGENTS, tickets, guard, Makefile, CI,
 //      tests, templates/ags-app) is present and the platform's own
 //      `checkAppRepo` template gate passes;
@@ -246,7 +246,7 @@ test("the frozen copyable template is present for the next app", () => {
   }
 })
 
-test("the contracts v0.6.0 manifest schema agrees with the platform", () => {
+test("the contracts v0.7.0 manifest schema agrees with the platform", () => {
   const contractsRoot = findContractsRoot()
   assert.notEqual(contractsRoot, null, "cannot find contracts (set CONTRACTS_ROOT)")
   const schema = JSON.parse(
@@ -265,32 +265,32 @@ test("the contracts v0.6.0 manifest schema agrees with the platform", () => {
   )
 })
 
-test("the Makefile pins platform v0.8.0, contracts v0.6.0 and the local contracts link", () => {
+test("the Makefile pins platform v0.9.0, contracts v0.7.0 and the local contracts link", () => {
   const makefile = readText("Makefile")
-  assert.match(makefile, /^AGS_PLATFORM_VERSION := v0\.8\.0$/m)
-  assert.match(makefile, /^CONTRACTS_VERSION := v0\.6\.0$/m)
+  assert.match(makefile, /^AGS_PLATFORM_VERSION := v0\.9\.0$/m)
+  assert.match(makefile, /^CONTRACTS_VERSION := v0\.7\.0$/m)
   assert.match(makefile, /^CONTRACTS_ROOT \?= \$\(CURDIR\)\/\.dev\/contracts$/m)
 })
 
-test("app.tsx applies the app-scoped skin after the theme, with no new handler", () => {
+test("app.tsx applies the v2 appearance and no longer applies theme or skin", () => {
   const app = readText("app.tsx")
-  assert.match(app, /from\s+"ags-platform\/adapters\/skin"/)
+  assert.match(app, /from\s+"ags-platform\/adapters\/appearance"/)
+  assert.match(app, /from\s+"ags-platform\/ports\/appearance-refresh"/)
   assert.match(
     app,
-    /const skin = createAppSkin\(\{ configDir: "ags-notifications" \}\)/,
-    "the skin is scoped to this app's configDir",
+    /const appearance = createAppearance\(\{ configDir: "ags-notifications" \}\)/,
+    "the appearance is scoped to this app's configDir",
   )
+  assert.doesNotMatch(app, /from\s+"ags-platform\/adapters\/(?:theme|skin)"/)
+  assert.doesNotMatch(app, /\b(?:theme|skin)\.apply\(\)/)
 
   const main = functionBody(app, "main()")
-  const themeAt = main.indexOf("theme.apply()")
-  const skinAt = main.indexOf("skin.apply()")
-  assert.notEqual(themeAt, -1, "main applies the theme")
-  assert.notEqual(skinAt, -1, "main applies the skin")
-  assert.ok(themeAt < skinAt, "theme is applied before the skin")
+  assert.match(main, /appearance\.apply\(\)/, "main applies the whole appearance")
+  assert.doesNotMatch(main, /theme\.apply|skin\.apply/)
 
   const handler = functionBody(app, "requestHandler(argv: string[]")
   assert.match(handler, /PALETTE_REFRESH_COMMAND/)
-  assert.doesNotMatch(handler, /skin/i, "no skin-refresh request is added")
+  assert.doesNotMatch(handler, /theme|skin|appearance-refresh/i, "no new request is added")
   assert.equal(
     (app.match(/requestHandler\s*\(/g) ?? []).length,
     1,
@@ -302,12 +302,25 @@ test("app.tsx applies the app-scoped skin after the theme, with no new handler",
   assert.match(app, /css: style/)
 })
 
+test("the card width comes from the appearance layout token", () => {
+  const app = readText("app.tsx")
+  assert.match(
+    app,
+    /appearance\.value\("layout\.ags-notifications\.card-width", 380\)/,
+    "the card measure is the v2 layout token with the shipped fallback",
+  )
+
+  const window = readText("ui", "NotificationsWindow.tsx")
+  assert.doesNotMatch(window, /const CARD_WIDTH\b/, "the hard-coded constant is gone")
+  assert.match(window, /cardWidth: ReadAccessor<number>/)
+  assert.match(window, /cardWidth\(\)/)
+})
+
 // ── 3. The live handler is real and non-destructive ────────────────────────
 
-test("app.tsx registers the real v0.5.0 palette-refresh handler", () => {
+test("app.tsx registers the v2 whole-appearance palette-refresh handler", () => {
   const app = readText("app.tsx")
-  assert.match(app, /from\s+"\.\/lib\/palette-refresh"/)
-  assert.match(app, /createNotificationsPaletteRefresh\(/)
+  assert.match(app, /createAppearanceRefreshHandler\(appearance,/)
   assert.match(app, /requestHandler\s*\(/)
   assert.match(
     app,
@@ -316,25 +329,14 @@ test("app.tsx registers the real v0.5.0 palette-refresh handler", () => {
   )
   assert.match(
     app,
-    /const paletteRefresh = createNotificationsPaletteRefresh\(\(\) => \{\s*theme\.apply\(\)\s*refreshNotificationCardIcons\(\)\s*\}\)/,
-    "the real v0.5.0 apply (Theme pointer + progress icons) is preserved",
+    /const paletteRefresh = createAppearanceRefreshHandler\(appearance, \(\) => \{\s*refreshNotificationCardIcons\(\)\s*\}\)/,
+    "the app-owned progress-icon work is preserved",
   )
   assert.doesNotMatch(
-    functionBody(app, "const paletteRefresh = createNotificationsPaletteRefresh"),
-    /app\.quit|dismiss|\.remove\(|rebuild/,
-    "the refresh does not tear down the stack or daemon",
+    functionBody(app, "const paletteRefresh = createAppearanceRefreshHandler"),
+    /app\.quit|dismiss|\.remove\(|rebuild|theme\.apply|skin\.apply/,
+    "the refresh neither tears down the stack nor re-applies theme/skin",
   )
-})
-
-test("the appearance core orders theme then icons and nothing destructive", () => {
-  const body = functionBody(readText("lib", "appearance.ts"), "export function applyAppearance")
-  assert.match(body, /surface\.applyTheme\(\)/)
-  assert.match(body, /surface\.refreshCardIcons\(\)/)
-  assert.ok(
-    body.indexOf("surface.applyTheme()") < body.indexOf("surface.refreshCardIcons()"),
-    "theme is applied before the icons are re-read",
-  )
-  assert.doesNotMatch(body, /dismiss|remove|quit|rebuild|visible/)
 })
 
 test("the progress-card icon refresh never rebuilds or dismisses a card", () => {

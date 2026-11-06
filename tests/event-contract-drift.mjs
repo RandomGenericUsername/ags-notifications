@@ -8,9 +8,9 @@
 // model to the contract's stage enum, and asserts the structural facts the
 // standalone repo turns on: the app still HOSTS `org.freedesktop.Notifications`,
 // the cards consume the ONE platform event client (no app-local reader), and
-// `palette-refresh` is the real non-destructive v0.5.0 handler (Theme pointer +
-// progress icons, never a card/daemon rebuild). Executed, never text-scanned --
-// except the structural source reads, which are labelled as such.
+// `palette-refresh` is the v2 whole-appearance handler with the app-owned
+// progress-icon work (never a card/daemon rebuild). Executed, never
+// text-scanned -- except the structural source reads, labelled as such.
 //
 // Run from the repo root:  make drift
 
@@ -276,19 +276,30 @@ check(
 
 // ── Structural: the real, non-destructive palette-refresh handler ────────
 //
-// The v0.5.0 handler was `theme.apply(); refreshNotificationCardIcons()`. The
-// standalone form keeps exactly that work behind the platform helper, and must
-// not rebuild/dismiss the progress cards or tear down the daemon/bus.
+// The v0.5.0 work was `theme.apply(); refreshNotificationCardIcons()`. In the
+// v2 plane the platform helper re-applies the WHOLE appearance; the app keeps
+// only the derived icon work and must not rebuild/dismiss the progress cards
+// or tear down the daemon/bus.
 
 check(
-  "app uses the notifications palette-refresh wrapper",
-  /createNotificationsPaletteRefresh\(/.test(appSource),
+  "app uses the v2 appearance-refresh handler",
+  /createAppearanceRefreshHandler\(appearance,/.test(appSource),
+  true,
+)
+check(
+  "app applies the whole appearance in main()",
+  /main\(\)\s*\{[\s\S]*?appearance\.apply\(\)/.test(appSource),
   true,
 )
 check(
   "app keeps the real progress-card icon refresh",
   /refreshNotificationCardIcons\(\)/.test(appSource),
   true,
+)
+check(
+  "app no longer applies theme or skin directly",
+  /\b(?:theme|skin)\.apply\(\)/.test(appSource),
+  false,
 )
 check(
   "window exposes the progress-card icon refresher",
@@ -299,26 +310,6 @@ check(
   "window does not apply the palette from wallpaper.state",
   /theme\.apply/.test(windowSource),
   false,
-)
-
-const refreshLib = readFileSync(join(appRoot, "lib", "palette-refresh.ts"), "utf-8")
-const appearanceLib = readFileSync(join(appRoot, "lib", "appearance.ts"), "utf-8")
-check(
-  "the handler uses the platform protocol helper",
-  /createPaletteRefreshHandler\(/.test(refreshLib),
-  true,
-)
-check(
-  "the handler lib is pure (no ags runtime/gi imports)",
-  /from\s+"(?:ags\/|ags"|gi:)/.test(refreshLib) ||
-    /from\s+"(?:ags\/|ags"|gi:)/.test(appearanceLib),
-  false,
-)
-check(
-  "appearance applies the theme then refreshes icons",
-  appearanceLib.indexOf("surface.applyTheme()") !== -1 &&
-    appearanceLib.indexOf("surface.applyTheme()") < appearanceLib.indexOf("surface.refreshCardIcons()"),
-  true,
 )
 
 if (failures > 0) {

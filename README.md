@@ -39,41 +39,43 @@ The stack consumes the one platform event client
 
 These events are **progress/status only**. They never apply the palette.
 
+### Appearance
+
+`app.tsx` builds one module-level
+`createAppearance({ configDir: "ags-notifications" })` and `main()` calls
+`appearance.apply()`. The adapter watches the single repointed
+`$XDG_STATE_HOME/dotfiles/current/appearance` hop, reads this app's composed
+`$XDG_CONFIG_HOME/ags-notifications/appearance.css` (palette + skin + mode) and
+installs it as the app's one USER-priority provider. A missing artifact is a
+no-op, so the bundled `style.css` glass fallback stays in force.
+
+The card width is read from the v2 layout token
+`layout.ags-notifications.card-width` with the shipped `380` fallback.
+
 ### `palette-refresh`
 
 The runtime invokes `ags request palette-refresh <appearance-hash> -i
-notifications` after an appearance change. The app performs the real v0.5.0
-work, unchanged in substance:
-
-1. re-applies the stable Theme pointer (`$XDG_CONFIG_HOME/ags/colors.css`);
-2. re-resolves the registry-backed icons on the progress cards.
+notifications` after an appearance change. The handler is
+`createAppearanceRefreshHandler(appearance, work)`: the platform re-applies the
+whole appearance (palette + skin + mode) first, then the app runs its derived
+work — re-resolving the registry-backed icons on the progress cards.
 
 Open wallpaper/speed-test progress cards, queued notifications and the
 AstalNotifd daemon/bus subscription are preserved — the refresh never rebuilds a
 card, dismisses one, hides the stack or restarts the process. The handler is
 idempotent by appearance hash and answers with exactly one JSON-encoded string
 (`{"ok":true}` or a protocol failure), via
-`ags-platform/ports/palette-refresh`.
-
-### Skin
-
-`main()` applies the theme and then `skin.apply()`, where `skin` is
-`createAppSkin({ configDir: "ags-notifications" })`. The adapter composes this
-app's runtime-expanded `$XDG_CONFIG_HOME/ags-notifications/skin.css` onto the
-shared palette/token artifacts at USER priority. A missing skin artifact is a
-no-op, so the bundled `style.css` glass fallback stays in force. The adapter's
-own `Gio.FileMonitor` reloads the skin on change; there is no skin-refresh
-request, and the palette-refresh handler is unchanged.
+`ags-platform/ports/palette-refresh`. There is no new request command.
 
 ## Local development
 
-The platform pin is `ags-platform` `v0.8.0` (the app-scoped Skin factory) and
-`contracts` is `v0.6.0` (the skin vocabulary). Those tags are local-only in
-this run; the local gates use gitignored symlinks under `.dev/`.
+The platform pin is `ags-platform` `v0.9.0` (the unified Appearance consumer)
+and `contracts` is `v0.7.0` (the appearance plane v2). Those tags are
+local-only in this run; the local gates use gitignored symlinks under `.dev/`.
 
 ```sh
 mkdir -p .dev/ags-platform
-ln -s ../../../ags-platform .dev/ags-platform/v0.8.0   # or use AGS_PLATFORM_DEV
+ln -s ../../../ags-platform .dev/ags-platform/v0.9.0   # or use AGS_PLATFORM_DEV
 ln -s ../../contracts .dev/contracts                   # or set CONTRACTS_ROOT
 make test          # pure unit tests (Node only)
 make conformance   # manifest + handler + template gate
@@ -99,7 +101,7 @@ ags request palette-refresh smoke-hash -i notifications
 ```text
 app.tsx                     AGS entry point (instance notifications, daemon)
 app.manifest.json           identity tuple
-lib/                        pure card model, appearance core, refresh handler
+lib/                        pure card model
 ui/                         NotificationsWindow (cards, daemon subscriptions)
 tests/                      pure unit + manifest/handler/template conformance
 tickets/                    LIFECYCLE, INDEX, _template, this repo's tickets
