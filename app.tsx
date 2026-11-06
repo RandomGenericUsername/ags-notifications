@@ -8,6 +8,7 @@ import style from "./style.css"
 // artifact is applied — the stable `colors.css` pointer, repointed on every
 // palette change — so this app no longer carries its own theme.ts copy.
 import { theme } from "ags-platform/adapters/theme"
+import { createAppSkin } from "ags-platform/adapters/skin"
 import { PALETTE_REFRESH_COMMAND } from "ags-platform/ports/palette-refresh"
 import {
   NotificationsWindow,
@@ -63,6 +64,13 @@ const paletteRefresh = createNotificationsPaletteRefresh(() => {
   refreshNotificationCardIcons()
 })
 
+// This app's slice of the skin plane: the runtime-expanded
+// `$XDG_CONFIG_HOME/ags-notifications/skin.css` composed onto the shared
+// palette/token artifacts. The adapter owns the file monitor, so a skin.css
+// change reloads the provider without a request handler. A missing artifact is
+// a no-op, leaving the bundled `style.css` glass fallback in place.
+const skin = createAppSkin({ configDir: "ags-notifications" })
+
 /**
  * Register one top-level window with the application.
  *
@@ -99,6 +107,10 @@ app.start({
     } catch (error) {
       console.error(`notifications: palette CSS apply failed: ${error}`)
     }
+    // The skin provider must be installed after the theme provider: its
+    // composed sheet carries the palette block AND the expanded skin CSS at
+    // USER priority. `apply()` is a no-op when this app has no skin artifacts.
+    skin.apply()
 
     // A foreign daemon (dunst during the transition, or a duplicate instance)
     // holding the name means we cannot serve notifications. Exit cleanly

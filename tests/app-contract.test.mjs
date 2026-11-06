@@ -246,7 +246,7 @@ test("the frozen copyable template is present for the next app", () => {
   }
 })
 
-test("the contracts v0.3.0 manifest schema agrees with the platform", () => {
+test("the contracts v0.6.0 manifest schema agrees with the platform", () => {
   const contractsRoot = findContractsRoot()
   assert.notEqual(contractsRoot, null, "cannot find contracts (set CONTRACTS_ROOT)")
   const schema = JSON.parse(
@@ -265,11 +265,41 @@ test("the contracts v0.3.0 manifest schema agrees with the platform", () => {
   )
 })
 
-test("the Makefile pins platform v0.4.0, contracts v0.3.0 and the local contracts link", () => {
+test("the Makefile pins platform v0.8.0, contracts v0.6.0 and the local contracts link", () => {
   const makefile = readText("Makefile")
-  assert.match(makefile, /^AGS_PLATFORM_VERSION := v0\.4\.0$/m)
-  assert.match(makefile, /^CONTRACTS_VERSION := v0\.3\.0$/m)
+  assert.match(makefile, /^AGS_PLATFORM_VERSION := v0\.8\.0$/m)
+  assert.match(makefile, /^CONTRACTS_VERSION := v0\.6\.0$/m)
   assert.match(makefile, /^CONTRACTS_ROOT \?= \$\(CURDIR\)\/\.dev\/contracts$/m)
+})
+
+test("app.tsx applies the app-scoped skin after the theme, with no new handler", () => {
+  const app = readText("app.tsx")
+  assert.match(app, /from\s+"ags-platform\/adapters\/skin"/)
+  assert.match(
+    app,
+    /const skin = createAppSkin\(\{ configDir: "ags-notifications" \}\)/,
+    "the skin is scoped to this app's configDir",
+  )
+
+  const main = functionBody(app, "main()")
+  const themeAt = main.indexOf("theme.apply()")
+  const skinAt = main.indexOf("skin.apply()")
+  assert.notEqual(themeAt, -1, "main applies the theme")
+  assert.notEqual(skinAt, -1, "main applies the skin")
+  assert.ok(themeAt < skinAt, "theme is applied before the skin")
+
+  const handler = functionBody(app, "requestHandler(argv: string[]")
+  assert.match(handler, /PALETTE_REFRESH_COMMAND/)
+  assert.doesNotMatch(handler, /skin/i, "no skin-refresh request is added")
+  assert.equal(
+    (app.match(/requestHandler\s*\(/g) ?? []).length,
+    1,
+    "the app adds no second request handler",
+  )
+
+  assert.ok(existsSync(join(ROOT, "style.css")), "style.css is still present")
+  assert.match(app, /import style from "\.\/style\.css"/)
+  assert.match(app, /css: style/)
 })
 
 // ── 3. The live handler is real and non-destructive ────────────────────────

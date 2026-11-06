@@ -55,15 +55,25 @@ idempotent by appearance hash and answers with exactly one JSON-encoded string
 (`{"ok":true}` or a protocol failure), via
 `ags-platform/ports/palette-refresh`.
 
+### Skin
+
+`main()` applies the theme and then `skin.apply()`, where `skin` is
+`createAppSkin({ configDir: "ags-notifications" })`. The adapter composes this
+app's runtime-expanded `$XDG_CONFIG_HOME/ags-notifications/skin.css` onto the
+shared palette/token artifacts at USER priority. A missing skin artifact is a
+no-op, so the bundled `style.css` glass fallback stays in force. The adapter's
+own `Gio.FileMonitor` reloads the skin on change; there is no skin-refresh
+request, and the palette-refresh handler is unchanged.
+
 ## Local development
 
-The platform pin is `ags-platform` `v0.4.0` (the `palette.v1` role provider);
-`contracts` stays on the `v0.3.0` adoption tuple. Those tags are local-only in
+The platform pin is `ags-platform` `v0.8.0` (the app-scoped Skin factory) and
+`contracts` is `v0.6.0` (the skin vocabulary). Those tags are local-only in
 this run; the local gates use gitignored symlinks under `.dev/`.
 
 ```sh
 mkdir -p .dev/ags-platform
-ln -s ../../../ags-platform .dev/ags-platform/v0.4.0   # or use AGS_PLATFORM_DEV
+ln -s ../../../ags-platform .dev/ags-platform/v0.8.0   # or use AGS_PLATFORM_DEV
 ln -s ../../contracts .dev/contracts                   # or set CONTRACTS_ROOT
 make test          # pure unit tests (Node only)
 make conformance   # manifest + handler + template gate

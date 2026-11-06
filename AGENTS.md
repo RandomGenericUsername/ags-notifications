@@ -63,8 +63,8 @@ no self-hosted runner and no CI secret dependency.
 - `make bundle` — LOCAL: `ags bundle app.tsx build/ags-notifications.js`.
 - `make gates` — all of the above.
 
-The program tuple is `ags-platform` / `contracts` / `dotfiles-assets` v0.3.0,
-local-only in this run. `.dev/` is gitignored; never commit a fetched platform,
+The platform tuple is `ags-platform` v0.8.0 / `contracts` v0.6.0, local-only
+in this run. `.dev/` is gitignored; never commit a fetched platform,
 `node_modules/`, `@girs/`, generated `tsconfig.json` or bundle output.
 
 ## 5. Release
