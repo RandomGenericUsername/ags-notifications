@@ -6,7 +6,7 @@
 //   1. `app.manifest.json` is schema-valid and carries the notifications
 //      identity;
 //   2. app.tsx / window / style / README agree with that identity;
-//   3. the live palette-refresh handler re-applies the whole Appearance and
+//   3. the live appearance-refresh handler applies the requested generation and
 //      keeps the app-owned progress-card icon work; it is non-destructive: no
 //      card rebuild, no daemon teardown, no wallpaper.state palette application;
 //   4. the shared dev-flow template (AGENTS, tickets, guard, Makefile, CI,
@@ -246,7 +246,7 @@ test("the frozen copyable template is present for the next app", () => {
   }
 })
 
-test("the contracts v0.7.0 manifest schema agrees with the platform", () => {
+test("the contracts v0.8.0 manifest schema agrees with the platform", () => {
   const contractsRoot = findContractsRoot()
   assert.notEqual(contractsRoot, null, "cannot find contracts (set CONTRACTS_ROOT)")
   const schema = JSON.parse(
@@ -265,14 +265,19 @@ test("the contracts v0.7.0 manifest schema agrees with the platform", () => {
   )
 })
 
-test("the Makefile pins platform v0.9.0, contracts v0.7.0 and the local contracts link", () => {
+test("the Makefile and CI pin platform v1.0.0, contracts v0.8.0 and the local contracts link", () => {
   const makefile = readText("Makefile")
-  assert.match(makefile, /^AGS_PLATFORM_VERSION := v0\.9\.0$/m)
-  assert.match(makefile, /^CONTRACTS_VERSION := v0\.7\.0$/m)
+  assert.match(makefile, /^AGS_PLATFORM_VERSION := v1\.0\.0$/m)
+  assert.match(makefile, /^CONTRACTS_VERSION := v0\.8\.0$/m)
   assert.match(makefile, /^CONTRACTS_ROOT \?= \$\(CURDIR\)\/\.dev\/contracts$/m)
+
+  const workflow = readText(".github", "workflows", "ci.yml")
+  assert.match(workflow, /ref: v1\.0\.0/)
+  assert.match(workflow, /ref: v0\.8\.0/)
+  assert.doesNotMatch(workflow, /ref: v0\.9\.0|ref: v0\.7\.0/)
 })
 
-test("app.tsx applies the v2 appearance and no longer applies theme or skin", () => {
+test("app.tsx consumes the v3 generation plane and no longer applies theme or skin", () => {
   const app = readText("app.tsx")
   assert.match(app, /from\s+"ags-platform\/adapters\/appearance"/)
   assert.match(app, /from\s+"ags-platform\/ports\/appearance-refresh"/)
@@ -285,17 +290,21 @@ test("app.tsx applies the v2 appearance and no longer applies theme or skin", ()
   assert.doesNotMatch(app, /\b(?:theme|skin)\.apply\(\)/)
 
   const main = functionBody(app, "main()")
-  assert.match(main, /appearance\.apply\(\)/, "main applies the whole appearance")
+  assert.match(main, /appearance\.apply\(\)/, "main applies the committed generation")
   assert.doesNotMatch(main, /theme\.apply|skin\.apply/)
 
   const handler = functionBody(app, "requestHandler(argv: string[]")
-  assert.match(handler, /PALETTE_REFRESH_COMMAND/)
-  assert.doesNotMatch(handler, /theme|skin|appearance-refresh/i, "no new request is added")
+  assert.match(handler, /APPEARANCE_REFRESH_COMMAND/)
+  assert.doesNotMatch(handler, /PALETTE_REFRESH_COMMAND|palette-refresh/)
+  assert.doesNotMatch(handler, /theme|skin/)
   assert.equal(
     (app.match(/requestHandler\s*\(/g) ?? []).length,
     1,
     "the app adds no second request handler",
   )
+
+  assert.doesNotMatch(app, /PALETTE_REFRESH_COMMAND|["']palette-refresh["']/)
+  assert.doesNotMatch(app, /"ok"\s*:\s*true|ok:\s*true/, "the v2 ok ack is not produced")
 
   assert.ok(existsSync(join(ROOT, "style.css")), "style.css is still present")
   assert.match(app, /import style from "\.\/style\.css"/)
@@ -318,22 +327,25 @@ test("the card width comes from the appearance layout token", () => {
 
 // ── 3. The live handler is real and non-destructive ────────────────────────
 
-test("app.tsx registers the v2 whole-appearance palette-refresh handler", () => {
+test("app.tsx registers the v3 generation-bound appearance-refresh handler", () => {
   const app = readText("app.tsx")
   assert.match(app, /createAppearanceRefreshHandler\(appearance,/)
   assert.match(app, /requestHandler\s*\(/)
   assert.match(
     app,
-    /if \(argv\[0\] === PALETTE_REFRESH_COMMAND\)[\s\S]*paletteRefresh\(argv, res\)/,
-    "palette-refresh dispatches before the unknown-request response",
+    /if \(argv\[0\] === APPEARANCE_REFRESH_COMMAND\)[\s\S]*appearanceRefresh\(argv, res\)/,
+    "appearance-refresh dispatches before the unknown-request response",
   )
   assert.match(
     app,
-    /const paletteRefresh = createAppearanceRefreshHandler\(appearance, \(\) => \{\s*refreshNotificationCardIcons\(\)\s*\}\)/,
-    "the app-owned progress-icon work is preserved",
+    /const appearanceRefresh = createAppearanceRefreshHandler\(appearance, \(\) => \{\s*refreshNotificationCardIcons\(\)\s*return \{ status: "applied" \}\s*\}\)/,
+    "the app-owned progress-icon work is preserved and reports applied",
   )
+  const work = functionBody(app, "const appearanceRefresh = createAppearanceRefreshHandler")
+  assert.match(work, /refreshNotificationCardIcons\(\)/)
+  assert.match(work, /return \{ status: "applied" \}/, "v3 work returns a generation-bound applied status")
   assert.doesNotMatch(
-    functionBody(app, "const paletteRefresh = createAppearanceRefreshHandler"),
+    work,
     /app\.quit|dismiss|\.remove\(|rebuild|theme\.apply|skin\.apply/,
     "the refresh neither tears down the stack nor re-applies theme/skin",
   )

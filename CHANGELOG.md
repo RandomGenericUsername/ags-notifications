@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased — Generations v3
+
+- Migrate to Generations v3: `app.tsx` keeps one module-level
+  `createAppearance({ configDir: "ags-notifications" })`, `main()` calls
+  `appearance.apply()`, and the request handler is
+  `createAppearanceRefreshHandler(appearance, work)`. The command is now
+  `appearance-refresh <genHash>`; the handler answers with the exact requested
+  generation (`{"applied":"<genHash>"}` or a generation-bound
+  `deferred`/`failed`), never the v2 `{"ok":true}` ack.
+- The app-owned palette-refresh work is unchanged: the progress-card icons are
+  re-resolved after the generation is applied, and open wallpaper/speed-test
+  cards, queued notifications and the AstalNotifd daemon/bus subscription
+  survive. `style.css` remains the bundled glass fallback and the card width
+  still comes from `layout.ags-notifications.card-width`.
+- Pin `ags-platform` `v1.0.0` (the Generations v3 consumer) and `contracts`
+  `v0.8.0` (the Generations v3 contract).
+
 ## Unreleased — v0.2.1
 
 - Notification cards are opaque (`background-color: @surface`) instead of

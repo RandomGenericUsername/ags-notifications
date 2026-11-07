@@ -8,7 +8,7 @@
 // model to the contract's stage enum, and asserts the structural facts the
 // standalone repo turns on: the app still HOSTS `org.freedesktop.Notifications`,
 // the cards consume the ONE platform event client (no app-local reader), and
-// `palette-refresh` is the v2 whole-appearance handler with the app-owned
+// `appearance-refresh` is the v3 generation-bound handler with the app-owned
 // progress-icon work (never a card/daemon rebuild). Executed, never
 // text-scanned -- except the structural source reads, labelled as such.
 //
@@ -274,20 +274,30 @@ check(
   false,
 )
 
-// ── Structural: the real, non-destructive palette-refresh handler ────────
+// ── Structural: the real, non-destructive appearance-refresh handler ─────
 //
 // The v0.5.0 work was `theme.apply(); refreshNotificationCardIcons()`. In the
-// v2 plane the platform helper re-applies the WHOLE appearance; the app keeps
-// only the derived icon work and must not rebuild/dismiss the progress cards
-// or tear down the daemon/bus.
+// v3 plane the platform helper applies the requested generation first; the app
+// keeps only the derived icon work, reports it as applied, and must not
+// rebuild/dismiss the progress cards or tear down the daemon/bus.
 
 check(
-  "app uses the v2 appearance-refresh handler",
+  "app uses the v3 appearance-refresh handler",
   /createAppearanceRefreshHandler\(appearance,/.test(appSource),
   true,
 )
 check(
-  "app applies the whole appearance in main()",
+  "app dispatches appearance-refresh",
+  /APPEARANCE_REFRESH_COMMAND/.test(appSource),
+  true,
+)
+check(
+  "app does not dispatch the v2 palette-refresh command",
+  /PALETTE_REFRESH_COMMAND|["']palette-refresh["']/.test(appSource),
+  false,
+)
+check(
+  "app applies the committed generation in main()",
   /main\(\)\s*\{[\s\S]*?appearance\.apply\(\)/.test(appSource),
   true,
 )
@@ -295,6 +305,16 @@ check(
   "app keeps the real progress-card icon refresh",
   /refreshNotificationCardIcons\(\)/.test(appSource),
   true,
+)
+check(
+  "app reports the v3 work as applied",
+  /return \{ status: "applied" \}/.test(appSource),
+  true,
+)
+check(
+  "app never produces the v2 ok ack",
+  /["']ok["']\s*:\s*true|ok:\s*true/.test(appSource),
+  false,
 )
 check(
   "app no longer applies theme or skin directly",

@@ -43,39 +43,42 @@ These events are **progress/status only**. They never apply the palette.
 
 `app.tsx` builds one module-level
 `createAppearance({ configDir: "ags-notifications" })` and `main()` calls
-`appearance.apply()`. The adapter watches the single repointed
-`$XDG_STATE_HOME/dotfiles/current/appearance` hop, reads this app's composed
-`$XDG_CONFIG_HOME/ags-notifications/appearance.css` (palette + skin + mode) and
-installs it as the app's one USER-priority provider. A missing artifact is a
-no-op, so the bundled `style.css` glass fallback stays in force.
+`appearance.apply()`. The adapter watches the single committed
+`$XDG_STATE_HOME/dotfiles/current` generation pointer, verifies
+`current/manifest.json`, reads this app's composed
+`current/appearance/ags-notifications.css` (palette + skin + mode) and installs
+it as the app's one USER-priority provider. A missing artifact is a no-op, so
+the bundled `style.css` glass fallback stays in force.
 
-The card width is read from the v2 layout token
+The card width is read from the generation layout token
 `layout.ags-notifications.card-width` with the shipped `380` fallback.
 
-### `palette-refresh`
+### `appearance-refresh`
 
-The runtime invokes `ags request palette-refresh <appearance-hash> -i
-notifications` after an appearance change. The handler is
-`createAppearanceRefreshHandler(appearance, work)`: the platform re-applies the
-whole appearance (palette + skin + mode) first, then the app runs its derived
-work — re-resolving the registry-backed icons on the progress cards.
+The runtime invokes `ags request appearance-refresh <genHash> -i notifications`
+after a generation is committed. The handler is
+`createAppearanceRefreshHandler(appearance, work)`: the platform resolves and
+applies the requested generation first, then the app runs its derived work —
+re-resolving the registry-backed icons on the progress cards.
 
 Open wallpaper/speed-test progress cards, queued notifications and the
 AstalNotifd daemon/bus subscription are preserved — the refresh never rebuilds a
 card, dismisses one, hides the stack or restarts the process. The handler is
-idempotent by appearance hash and answers with exactly one JSON-encoded string
-(`{"ok":true}` or a protocol failure), via
-`ags-platform/ports/palette-refresh`. There is no new request command.
+idempotent by generation hash and answers with exactly one JSON-encoded string
+that names the exact requested generation (`{"applied":"<genHash>"}`, or a
+generation-bound `deferred`/`failed`), via
+`ags-platform/ports/appearance-refresh`. There is no new request command and the
+v2 `palette-refresh` / `{"ok":true}` ack is not produced.
 
 ## Local development
 
-The platform pin is `ags-platform` `v0.9.0` (the unified Appearance consumer)
-and `contracts` is `v0.7.0` (the appearance plane v2). Those tags are
-local-only in this run; the local gates use gitignored symlinks under `.dev/`.
+The platform pin is `ags-platform` `v1.0.0` (the Generations v3 consumer) and
+`contracts` is `v0.8.0` (the Generations v3 contract). Those tags are local-only
+in this run; the local gates use gitignored symlinks under `.dev/`.
 
 ```sh
 mkdir -p .dev/ags-platform
-ln -s ../../../ags-platform .dev/ags-platform/v0.9.0   # or use AGS_PLATFORM_DEV
+ln -s ../../../ags-platform .dev/ags-platform/v1.0.0   # or use AGS_PLATFORM_DEV
 ln -s ../../contracts .dev/contracts                   # or set CONTRACTS_ROOT
 make test          # pure unit tests (Node only)
 make conformance   # manifest + handler + template gate
@@ -93,7 +96,7 @@ Run the app:
 
 ```sh
 ags run -d .
-ags request palette-refresh smoke-hash -i notifications
+ags request appearance-refresh <genHash> -i notifications
 ```
 
 ## Repo layout

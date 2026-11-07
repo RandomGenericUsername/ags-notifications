@@ -4,12 +4,14 @@ import GLib from "gi://GLib?version=2.0"
 import Gio from "gi://Gio?version=2.0"
 import Notifd from "gi://AstalNotifd?version=0.1"
 import style from "./style.css"
-// Appearance through the platform v2 consumer (contracts v0.7.0): one composed
-// provider for palette + skin + mode and one monitor on the single repointed
-// `current/appearance` hop. This replaces the split Theme + Skin pair.
+// Appearance through the platform v1.0.0 consumer for Generations v3
+// (contracts v0.8.0): one composed provider for palette + skin + mode and one
+// monitor on the single committed `current` generation pointer.
 import { createAppearance } from "ags-platform/adapters/appearance"
-import { createAppearanceRefreshHandler } from "ags-platform/ports/appearance-refresh"
-import { PALETTE_REFRESH_COMMAND } from "ags-platform/ports/palette-refresh"
+import {
+  APPEARANCE_REFRESH_COMMAND,
+  createAppearanceRefreshHandler,
+} from "ags-platform/ports/appearance-refresh"
 import {
   NotificationsWindow,
   refreshNotificationCardIcons,
@@ -50,27 +52,30 @@ function foreignNotificationDaemon(): boolean {
   }
 }
 
-// This app's slice of the v2 appearance plane: the runtime-composed
-// `$XDG_CONFIG_HOME/ags-notifications/appearance.css` (palette + skin + mode)
-// behind the one `current/appearance` hop. The adapter owns the file monitor,
-// so an appearance change reloads the provider without a request handler. A
-// missing artifact is a no-op, leaving the bundled `style.css` glass fallback
-// in place.
+// This app's slice of the v3 state plane: `current/manifest.json` and the
+// runtime-composed `current/appearance/ags-notifications.css` (palette + skin
+// + mode) behind the one committed generation pointer. The adapter owns the
+// file monitor, so an appearance change reloads the provider without a request
+// handler. A missing artifact is a no-op, leaving the bundled `style.css` glass
+// fallback in place.
 const appearance = createAppearance({ configDir: "ags-notifications" })
 
 // The runtime-owned palette refresh (AD-27), the standalone form of the real
-// v0.5.0 handler. The platform helper re-applies the WHOLE appearance first;
-// the injected work is only the app-owned, non-destructive step: re-resolve the
-// registry-backed progress-card icons. It does NOT rebuild the notification
-// stack: the open progress cards (wallpaper + speed test) and the AstalNotifd
-// daemon/bus subscription survive untouched. The helper is idempotent by the
-// opaque appearance hash and answers through its single JSON-encoded string.
-const paletteRefresh = createAppearanceRefreshHandler(appearance, () => {
+// v0.5.0 handler. The platform helper resolves and applies the requested
+// generation first; the injected work is only the app-owned, non-destructive
+// step: re-resolve the registry-backed progress-card icons. It does NOT rebuild
+// the notification stack: the open progress cards (wallpaper + speed test) and
+// the AstalNotifd daemon/bus subscription survive untouched. The helper is
+// idempotent by generation hash and answers through its single JSON-encoded
+// string with the exact requested generation.
+const appearanceRefresh = createAppearanceRefreshHandler(appearance, () => {
   refreshNotificationCardIcons()
+  return { status: "applied" }
 })
 
-// The card measure is a TSX-owned layout token in the v2 plane. Read it through
-// the reactive accessor so an appearance reload updates the next card built;
+// The card measure is a TSX-owned layout token in the generation plane. Read it
+// through the reactive accessor so an appearance reload updates the next card
+// built;
 // `380` keeps the shipped mockup measure when the token is absent.
 const cardWidth = appearance.value("layout.ags-notifications.card-width", 380)
 
@@ -91,13 +96,13 @@ function addWindow(element: JSX.Element): void {
 app.start({
   instanceName: "notifications",
   css: style,
-  // The runtime is the only palette-refresh trigger (AD-27). Re-applying the
-  // whole appearance and re-reading the registry-backed progress icons
+  // The runtime is the only appearance-refresh trigger (AD-27). Applying the
+  // requested generation and re-reading the registry-backed progress icons
   // preserves the open card stack and the daemon's notification/bus state;
-  // `wallpaper.state` is now progress/status only.
+  // `wallpaper.state` is progress/status only.
   requestHandler(argv: string[], res: (response: string) => void) {
-    if (argv[0] === PALETTE_REFRESH_COMMAND) {
-      paletteRefresh(argv, res)
+    if (argv[0] === APPEARANCE_REFRESH_COMMAND) {
+      appearanceRefresh(argv, res)
       return
     }
     // This app exposes no other control surface in v0.5.0; name the request

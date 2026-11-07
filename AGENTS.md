@@ -33,7 +33,7 @@ mode=live          holdsUnsavedState=false
   it exit cleanly instead of tearing down. Do not remove that probe.
 - No app imports another app. Depend on `ags-platform` (and `contracts` at test
   time only), never on a sibling app repo.
-- The runtime is the only palette-refresh trigger. Do not subscribe to
+- The runtime is the only appearance-refresh trigger. Do not subscribe to
   `wallpaper.state` for palette application and do not invent a palette event.
 
 ## 3. Ticket flow
@@ -63,7 +63,7 @@ no self-hosted runner and no CI secret dependency.
 - `make bundle` — LOCAL: `ags bundle app.tsx build/ags-notifications.js`.
 - `make gates` — all of the above.
 
-The platform tuple is `ags-platform` v0.9.0 / `contracts` v0.7.0, local-only
+The platform tuple is `ags-platform` v1.0.0 / `contracts` v0.8.0, local-only
 in this run. `.dev/` is gitignored; never commit a fetched platform,
 `node_modules/`, `@girs/`, generated `tsconfig.json` or bundle output.
 
@@ -74,15 +74,18 @@ moved. Installed tags are read-only; writable state lives under XDG paths, never
 inside the tag. Tag only after `make gates` passes, and record the evidence in
 the release ticket.
 
-## 6. Palette-refresh invariants
+## 6. Appearance-refresh invariants
 
-The platform v2 `createAppearanceRefreshHandler(appearance, work)` is executed
-by tests, and the app keeps only the derived work:
+The platform v1.0.0 `createAppearanceRefreshHandler(appearance, work)` is
+executed by tests, and the app keeps only the derived palette-refresh work:
 
 - exactly one JSON-string response per request, through the platform helper;
-- the whole appearance is re-applied before the registry-backed progress-card
-  icons are re-read; the work never calls `theme.apply()` or `skin.apply()`;
-- idempotent by appearance hash; a thrown refresh is not recorded as applied;
+- the request is `["appearance-refresh", "<genHash>"]` and the requested
+  generation is applied before the registry-backed progress-card icons are
+  re-read; the work never calls `theme.apply()` or `skin.apply()`;
+- the response names the exact requested generation (`{"applied":"<genHash>"}`,
+  or a generation-bound deferred/failed); `{"ok":true}` is never emitted;
+- idempotent by generation hash; a thrown refresh is not recorded as applied;
 - the real v0.5.0 work is preserved: open wallpaper/speed-test progress cards,
   queued notifications and the AstalNotifd daemon/bus subscription survive;
   the refresh never rebuilds, dismisses or quits anything;
