@@ -72,13 +72,13 @@ v2 `palette-refresh` / `{"ok":true}` ack is not produced.
 
 ## Local development
 
-The platform pin is `ags-platform` `v1.0.0` (the Generations v3 consumer) and
+The platform pin is `ags-platform` `v1.0.1` (the Generations v3 consumer) and
 `contracts` is `v0.8.0` (the Generations v3 contract). Those tags are local-only
 in this run; the local gates use gitignored symlinks under `.dev/`.
 
 ```sh
 mkdir -p .dev/ags-platform
-ln -s ../../../ags-platform .dev/ags-platform/v1.0.0   # or use AGS_PLATFORM_DEV
+ln -s ../../../ags-platform .dev/ags-platform/v1.0.1   # or use AGS_PLATFORM_DEV
 ln -s ../../contracts .dev/contracts                   # or set CONTRACTS_ROOT
 make test          # pure unit tests (Node only)
 make conformance   # manifest + handler + template gate

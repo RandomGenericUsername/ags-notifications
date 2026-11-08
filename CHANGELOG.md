@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — ags-platform v1.0.1 pin
+
+- Bump the local/CI `ags-platform` pin from `v1.0.0` to `v1.0.1` for dev-pin
+  parity. `contracts` stays `v0.8.0`.
+- No app code, handler/ack, `style.css` or layout-token change.
+
 ## Unreleased — Generations v3
 
 - Migrate to Generations v3: `app.tsx` keeps one module-level
