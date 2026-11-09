@@ -4,7 +4,7 @@ import GLib from "gi://GLib?version=2.0"
 import Gio from "gi://Gio?version=2.0"
 import Notifd from "gi://AstalNotifd?version=0.1"
 import style from "./style.css"
-// Appearance through the platform v1.0.0 consumer for Generations v3
+// Appearance through the platform v3 consumer for Generations v3
 // (contracts v0.8.0): one composed provider for palette + skin + mode and one
 // monitor on the single committed `current` generation pointer.
 import { createAppearance } from "ags-platform/adapters/appearance"
