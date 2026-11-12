@@ -23,7 +23,7 @@
 ## Ops tasks
 
 - [OPS-001-dev-pin-parity/ticket.md](./OPS-001-dev-pin-parity/ticket.md) — Align the local dev pin with ags-platform v1.0.1 | `done` | links: worktree .worktrees/OPS-001/, branch ticket/OPS-001-dev-pin-parity, tag v0.5.1
-- [OPS-003-dev-pin-parity-v1.1.0/ticket.md](./OPS-003-dev-pin-parity-v1.1.0/ticket.md) — Align the local dev pin with ags-platform v1.1.0 and contracts v0.12.0 | `in-progress` | links: worktree .worktrees/OPS-003/, branch ticket/OPS-003-dev-pin-parity-v1.1.0
+- [OPS-003-dev-pin-parity-v1.1.0/ticket.md](./OPS-003-dev-pin-parity-v1.1.0/ticket.md) — Align the local dev pin with ags-platform v1.1.0 and contracts v0.12.0 | `done` | links: worktree .worktrees/OPS-003/, branch ticket/OPS-003-dev-pin-parity-v1.1.0, tag v0.5.2
 
 ## Spikes
 

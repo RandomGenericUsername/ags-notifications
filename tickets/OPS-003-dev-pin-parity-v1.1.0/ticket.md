@@ -41,16 +41,16 @@ not a live pin.
 
 ## Acceptance
 
-- [ ] `Makefile` and `.github/workflows/ci.yml` pin `ags-platform` `v1.1.0` and
+- [x] `Makefile` and `.github/workflows/ci.yml` pin `ags-platform` `v1.1.0` and
       `contracts` `v0.12.0`.
-- [ ] `tests/app-contract.test.mjs` asserts the `v1.1.0`/`v0.12.0` pins and
+- [x] `tests/app-contract.test.mjs` asserts the `v1.1.0`/`v0.12.0` pins and
       rejects the old `v1.0.1`/`v0.8.0` pins.
-- [ ] `README.md`, `AGENTS.md` and `CHANGELOG.md` name the `v1.1.0`/`v0.12.0`
+- [x] `README.md`, `AGENTS.md` and `CHANGELOG.md` name the `v1.1.0`/`v0.12.0`
       pins.
-- [ ] No change to app code, handler behavior, `style.css`, layout tokens or
+- [x] No change to app code, handler behavior, `style.css`, layout tokens or
       lane policy.
-- [ ] `make gates` passes with the local platform and contracts checkouts.
-- [ ] Work is committed on `ticket/OPS-003-dev-pin-parity-v1.1.0`, merged
+- [x] `make gates` passes with the local platform and contracts checkouts.
+- [x] Work is committed on `ticket/OPS-003-dev-pin-parity-v1.1.0`, merged
       fast-forward to `main`, tagged with annotated patch release `v0.5.2`, and
       `main` + tag are pushed.
 
@@ -62,19 +62,68 @@ branch is merged fast-forward to `main`, annotated `v0.5.2` is created and
 
 ## Evidence
 
-Evidence: MISSING — run the gates and record paths, SHAs and outputs here.
+- `Makefile:4-9` names and pins `AGS_PLATFORM_VERSION := v1.1.0` and
+  `CONTRACTS_VERSION := v0.12.0`; `Makefile:26-27` names the
+  `.dev/ags-platform/v1.1.0` symlink path; `Makefile:104` names the
+  contracts `v0.12.0` drift checkout.
+- `.github/workflows/ci.yml:25-26` checks out `ref: v1.1.0` at
+  `.dev/ags-platform/v1.1.0`; `.github/workflows/ci.yml:30` checks out
+  `ref: v0.12.0` at `contracts`.
+- `tests/app-contract.test.mjs:249` names the contracts `v0.12.0` schema;
+  `tests/app-contract.test.mjs:268-280` asserts the `v1.1.0`/`v0.12.0` pins and
+  rejects the old `v1.0.1`/`v0.8.0` pins in the Makefile and CI.
+- `README.md:75,81`, `AGENTS.md:66,79` and `CHANGELOG.md:3-7` name the
+  `v1.1.0`/`v0.12.0` pins.
+- `git diff e75bd55 -- app.tsx ui lib style.css` prints nothing: app code,
+  handler/ack behavior, `style.css` and layout tokens are unchanged.
+- Local platform: annotated tag `v1.1.0` →
+  `f20a68539ae4211604f253b7a54caefa81920262`. Local contracts: annotated tag
+  `v0.12.0` → `a03b5632828df8012c02a6117c3be438eca4264b`.
+- `make gates` with
+  `AGS_PLATFORM_DEV=/home/inumaki/Development/dotfiles/ags-platform` and
+  `CONTRACTS_ROOT=/home/inumaki/Development/dotfiles/contracts` → exit 0:
+  - `make test` — 19/19 pass;
+  - `make conformance` — 16/16 pass;
+  - `make drift` — all checks pass (`all checks passed`);
+  - `make bundle` — `build/ags-notifications.js` 1006100 bytes;
+  - `make typecheck` — 0 errors in the `ags-notifications` tree, 27 tolerated
+    `/usr/share/ags/js` errors, 0 platform errors.
+
+Verify:
+
+```sh
+cd .worktrees/OPS-003
+rg -n 'v1\.1\.0|v0\.12\.0' Makefile .github/workflows/ci.yml README.md AGENTS.md CHANGELOG.md tests/app-contract.test.mjs
+make gates \
+  AGS_PLATFORM_DEV=/home/inumaki/Development/dotfiles/ags-platform \
+  CONTRACTS_ROOT=/home/inumaki/Development/dotfiles/contracts
+```
 
 ## Commits
 
 | Commit | Subject |
 | --- | --- |
-| this filing commit | `chore(OPS-003): file the dev-pin parity ticket` |
+| `3db2702` | `chore(OPS-003): file the dev-pin parity ticket` |
+| `d09bf4d` | `chore(OPS-003): pin ags-platform v1.1.0 and contracts v0.12.0` |
+| this closeout commit | `docs(OPS-003): record dev-pin parity evidence` |
 
 ## Deviations / notes
 
-- No live apply.
+- `app.tsx:8` still says “(contracts v0.8.0)”; app code was explicitly out of
+  scope and that line is a descriptive comment, not a pin. No app behavior,
+  handler/ack, `style.css` or layout token changed.
+- Historical `tickets/REQ-005-*` and `tickets/OPS-001-*` evidence keeps its
+  `v1.0.0`/`v1.0.1`/`v0.8.0` references; those record release state and are not
+  live pins.
+- Gates ran in a fresh worktree, so `make gates` generated gitignored
+  `node_modules/`, `@girs/` and bundle output. Nothing generated was committed.
+- Release convention is tag-only (no GitHub Releases): previous releases are
+  annotated tags with no release object.
+- No live apply was performed.
 
 ## Status
 
-In progress on `ticket/OPS-003-dev-pin-parity-v1.1.0`; worktree
-`.worktrees/OPS-003/`, base `e75bd55` (main, `v0.5.1`).
+Complete on `ticket/OPS-003-dev-pin-parity-v1.1.0`; worktree
+`.worktrees/OPS-003/`, base `e75bd55` (main, `v0.5.1`). The closeout commit is
+tagged `v0.5.2` and the branch is merged fast-forward to `main`; `main` and the
+tag are pushed. No other repository was modified.
