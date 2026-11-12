@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — ags-platform v1.1.0 / contracts v0.12.0 pin
+
+- Bump the local/CI `ags-platform` pin from `v1.0.1` to `v1.1.0` and the
+  `contracts` pin from `v0.8.0` to `v0.12.0` for dev-pin parity.
+- No app code, handler/ack, `style.css` or layout-token change.
+
 ## Unreleased — ags-platform v1.0.1 pin
 
 - Bump the local/CI `ags-platform` pin from `v1.0.0` to `v1.0.1` for dev-pin

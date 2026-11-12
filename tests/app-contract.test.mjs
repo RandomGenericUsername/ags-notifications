@@ -246,7 +246,7 @@ test("the frozen copyable template is present for the next app", () => {
   }
 })
 
-test("the contracts v0.8.0 manifest schema agrees with the platform", () => {
+test("the contracts v0.12.0 manifest schema agrees with the platform", () => {
   const contractsRoot = findContractsRoot()
   assert.notEqual(contractsRoot, null, "cannot find contracts (set CONTRACTS_ROOT)")
   const schema = JSON.parse(
@@ -265,18 +265,18 @@ test("the contracts v0.8.0 manifest schema agrees with the platform", () => {
   )
 })
 
-test("the Makefile and CI pin platform v1.0.1, contracts v0.8.0 and the local contracts link", () => {
+test("the Makefile and CI pin platform v1.1.0, contracts v0.12.0 and the local contracts link", () => {
   const makefile = readText("Makefile")
-  assert.match(makefile, /^AGS_PLATFORM_VERSION := v1\.0\.1$/m)
-  assert.match(makefile, /^CONTRACTS_VERSION := v0\.8\.0$/m)
+  assert.match(makefile, /^AGS_PLATFORM_VERSION := v1\.1\.0$/m)
+  assert.match(makefile, /^CONTRACTS_VERSION := v0\.12\.0$/m)
   assert.match(makefile, /^CONTRACTS_ROOT \?= \$\(CURDIR\)\/\.dev\/contracts$/m)
-  assert.doesNotMatch(makefile, /^AGS_PLATFORM_VERSION := v1\.0\.0$/m)
+  assert.doesNotMatch(makefile, /^AGS_PLATFORM_VERSION := v1\.0\.1$/m)
 
   const workflow = readText(".github", "workflows", "ci.yml")
-  assert.match(workflow, /ref: v1\.0\.1/)
-  assert.match(workflow, /ref: v0\.8\.0/)
-  assert.doesNotMatch(workflow, /ref: v1\.0\.0/)
-  assert.doesNotMatch(workflow, /ref: v0\.9\.0|ref: v0\.7\.0/)
+  assert.match(workflow, /ref: v1\.1\.0/)
+  assert.match(workflow, /ref: v0\.12\.0/)
+  assert.doesNotMatch(workflow, /ref: v1\.0\.1/)
+  assert.doesNotMatch(workflow, /ref: v0\.8\.0|ref: v0\.9\.0|ref: v0\.7\.0/)
 })
 
 test("app.tsx consumes the v3 generation plane and no longer applies theme or skin", () => {

@@ -63,7 +63,7 @@ no self-hosted runner and no CI secret dependency.
 - `make bundle` — LOCAL: `ags bundle app.tsx build/ags-notifications.js`.
 - `make gates` — all of the above.
 
-The platform tuple is `ags-platform` v1.0.1 / `contracts` v0.8.0, local-only
+The platform tuple is `ags-platform` v1.1.0 / `contracts` v0.12.0, local-only
 in this run. `.dev/` is gitignored; never commit a fetched platform,
 `node_modules/`, `@girs/`, generated `tsconfig.json` or bundle output.
 
@@ -76,7 +76,7 @@ the release ticket.
 
 ## 6. Appearance-refresh invariants
 
-The platform v1.0.1 `createAppearanceRefreshHandler(appearance, work)` is
+The platform v1.1.0 `createAppearanceRefreshHandler(appearance, work)` is
 executed by tests, and the app keeps only the derived palette-refresh work:
 
 - exactly one JSON-string response per request, through the platform helper;
